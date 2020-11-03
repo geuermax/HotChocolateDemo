@@ -3,8 +3,6 @@ using HotChocolate;
 using HotChocolate.Subscriptions;
 using HotChocolateDemo.graphql.types;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace HotChocolateDemo.graphql

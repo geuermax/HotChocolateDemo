@@ -3,11 +3,7 @@ using HotChocolate;
 using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 

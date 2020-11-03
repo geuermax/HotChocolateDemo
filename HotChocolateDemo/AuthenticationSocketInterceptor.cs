@@ -1,15 +1,8 @@
-﻿using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.Server;
+﻿using HotChocolate.Server;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Connections;
-using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.Generic;
-using System.Net.WebSockets;
-using System.Timers;
 using System.Threading;
 using System.Threading.Tasks;
 
