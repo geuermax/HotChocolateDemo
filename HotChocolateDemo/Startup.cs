@@ -1,18 +1,27 @@
 using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Server;
 using HotChocolateDemo.graphql.types;
+using HotChocolateDemo.hcWebsockets;
 using IdentityModel.AspNetCore.OAuth2Introspection;
 using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
+using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -97,7 +106,7 @@ namespace HotChocolateDemo
                         c.Response.ContentType = "text/plain";
 
                         return c.Response.WriteAsync("An error occured while processing your authentication.");
-                    }
+                    }                    
                 };
 
             });
@@ -156,9 +165,14 @@ namespace HotChocolateDemo
                 .Create()
                 );
 
+            services.AddGraphQLSubscriptions();
+
+
             // Interceptor einbinden der die erste Nachricht eines Websockets abfängt und dort das Token entnimmt und dem HTTP-Context hinzufügt
             services.AddSingleton<ISocketConnectionInterceptor<HttpContext>, AuthenticationSocketInterceptor>();
             
+
+
             // Damit bei Websocket-Request der Context immer gesetzt wird. <-- Ohne das scheiß Teil funktioniert die Authorisierung auch nicht -.-
             services.AddQueryRequestInterceptor((
                 HttpContext context,
@@ -170,11 +184,13 @@ namespace HotChocolateDemo
 
                 return Task.CompletedTask;
             });
+
+            services.AddTransient<MyWebSocketManager>();                        
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
+        {          
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -187,6 +203,8 @@ namespace HotChocolateDemo
             app.UseAuthentication();
             // GraphQL und Websockets zur Pipeline hinzufügen
             app.UseWebSockets();
+            // Add middleware to track ws sessions and close those after a given time because of security reasons
+            app.UseMiddleware<MySubscriptionMiddleware>(new SubscriptionMiddlewareOptions());            
             app.UseGraphQL("/graphql");            
         }
     }

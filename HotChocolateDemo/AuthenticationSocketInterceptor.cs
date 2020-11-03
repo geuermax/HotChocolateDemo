@@ -1,8 +1,15 @@
-﻿using HotChocolate.Server;
+﻿using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.Server;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
+using System.Net.WebSockets;
+using System.Timers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,17 +22,25 @@ namespace HotChocolateDemo
         // This is the key to the auth token in the HTTP Context
         public static readonly string HTTP_CONTEXT_WEBSOCKET_AUTH_KEY = "websocket-auth-token";
         // This is the key that apollo uses in the connection init request
-        public static readonly string WEBOCKET_PAYLOAD_AUTH_KEY = "authToken"; // <-- So heißt der Bums auch in Apollo
+        public static readonly string WEBOCKET_PAYLOAD_AUTH_KEY = "Authorization"; // <-- So heißt der Bums auch in Apollo
 
         private readonly IAuthenticationSchemeProvider _schemes;
+        
         public AuthenticationSocketInterceptor(IAuthenticationSchemeProvider schemes)
         {
             _schemes = schemes;
+            
         }
+
+
+        /// <summary>
+        /// Intercepts the websocket connection, extracts the JWT from the onOpenMessage and authenticate the user with it. The connection will be rejected if the no JWT is given.
+        /// </summary>        
         public async Task<ConnectionStatus> OnOpenAsync(
             HttpContext context,
             IReadOnlyDictionary<string, object> properties,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken            
+            )
         {
             if (properties.TryGetValue(WEBOCKET_PAYLOAD_AUTH_KEY, out object token) &&
                 token is string stringToken)
@@ -37,6 +52,8 @@ namespace HotChocolateDemo
                     OriginalPath = context.Request.Path,
                     OriginalPathBase = context.Request.PathBase
                 });
+
+                
                 // Give any IAuthenticationRequestHandler schemes a chance to handle the request
                 var handlers = context.RequestServices.GetRequiredService<IAuthenticationHandlerProvider>();
                 foreach (var scheme in await _schemes.GetRequestHandlerSchemesAsync())
@@ -63,6 +80,5 @@ namespace HotChocolateDemo
             // Sollte kein Token vorhanden sein, wird die Anfrage abgelehnt
             return ConnectionStatus.Reject();
         }
-
     }
 }
