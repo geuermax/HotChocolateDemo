@@ -13,7 +13,7 @@ namespace HotChocolateDemo.graphql
     public class SubscriptionResolver
     {
 
-        [Authorize]
+        [Authorize(Policy = "Administrator")]
         [SubscribeAndResolve]
         public async ValueTask<IAsyncEnumerable<Player>> OnPenaltyAssigned(
             [Service]ITopicEventReceiver eventReceiver,

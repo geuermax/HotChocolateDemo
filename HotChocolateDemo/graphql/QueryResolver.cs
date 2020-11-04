@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace HotChocolateDemo.graphql
 {
-    [Authorize]
+    [Authorize(Policy = "Administrator")]
     public class QueryResolver
     {
 

@@ -40,13 +40,13 @@ namespace HotChocolateDemo
             {
                 // Das Token dem HTTP Context hinzufügen, sodass dies später für über den TokenRetriever verwendet werden aknn
                 context.Items[HTTP_CONTEXT_WEBSOCKET_AUTH_KEY] = stringToken;
+
                 context.Features.Set<IAuthenticationFeature>(new AuthenticationFeature
                 {
                     OriginalPath = context.Request.Path,
                     OriginalPathBase = context.Request.PathBase
                 });
 
-                
                 // Give any IAuthenticationRequestHandler schemes a chance to handle the request
                 var handlers = context.RequestServices.GetRequiredService<IAuthenticationHandlerProvider>();
                 foreach (var scheme in await _schemes.GetRequestHandlerSchemesAsync())
@@ -56,7 +56,8 @@ namespace HotChocolateDemo
                     {
                         return ConnectionStatus.Reject();
                     }
-                }                
+                } 
+
                 var defaultAuthenticate = await _schemes.GetDefaultAuthenticateSchemeAsync();
                 if (defaultAuthenticate != null)
                 {
